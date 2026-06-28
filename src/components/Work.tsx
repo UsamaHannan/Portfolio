@@ -1,51 +1,71 @@
 import "./styles/Work.css";
+import { useEffect } from "react";
 import WorkImage from "./WorkImage";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger.js";
-import { useGSAP } from "@gsap/react";
 
-gsap.registerPlugin(useGSAP);
+gsap.registerPlugin(ScrollTrigger);
 
 const Work = () => {
-  useGSAP(() => {
-  let translateX: number = 0;
+  useEffect(() => {
+    const workContainer = document.querySelector(
+      ".work-container"
+    ) as HTMLElement | null;
+    const workFlex = document.querySelector(".work-flex") as HTMLElement | null;
+    if (!workContainer || !workFlex) return;
 
-  function setTranslateX() {
-    const box = document.getElementsByClassName("work-box");
-    const rectLeft = document
-      .querySelector(".work-container")!
-      .getBoundingClientRect().left;
-    const rect = box[0].getBoundingClientRect();
-    const parentWidth = box[0].parentElement!.getBoundingClientRect().width;
-    let padding: number =
-      parseInt(window.getComputedStyle(box[0]).padding) / 2;
-    translateX = rect.width * box.length - (rectLeft + parentWidth) + padding;
-  }
+    const calculateWidth = () => {
+      const styles = window.getComputedStyle(workFlex);
+      const marginLeft = parseInt(styles.marginLeft) || 0;
+      const paddingRight = parseInt(styles.paddingRight) || 0;
+      return Math.max(
+        0,
+        workFlex.scrollWidth - workContainer.clientWidth +
+          Math.abs(marginLeft) +
+          paddingRight
+      );
+    };
 
-  setTranslateX();
+    let translateX = calculateWidth();
+    const refreshWidths = () => {
+      translateX = calculateWidth();
+    };
 
-  let timeline = gsap.timeline({
-    scrollTrigger: {
-      trigger: ".work-section",
-      start: "top top",
-      end: `+=${translateX}`, // Use actual scroll width
-      scrub: true,
-      pin: true,
-      id: "work",
-    },
-  });
+    const animation = gsap.to(workFlex, {
+      x: () => -translateX,
+      ease: "none",
+      scrollTrigger: {
+        trigger: ".work-section",
+        start: "top top",
+        end: () => `+=${translateX + workContainer.offsetHeight}`,
+        scrub: true,
+        pin: true,
+        pinSpacing: true,
+        invalidateOnRefresh: true,
+        anticipatePin: 1,
+        id: "work",
+        onRefresh: () => {
+          refreshWidths();
+        },
+      },
+    });
 
-  timeline.to(".work-flex", {
-    x: -translateX,
-    ease: "none",
-  });
+    const handleResize = () => {
+      refreshWidths();
+      ScrollTrigger.refresh();
+    };
 
-  // Clean up (optional, good practice)
-  return () => {
-    timeline.kill();
-    ScrollTrigger.getById("work")?.kill();
-  };
-}, []);
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("load", handleResize);
+
+    return () => {
+      animation.kill();
+      ScrollTrigger.getById("work")?.kill();
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("load", handleResize);
+    };
+  }, []);
+
   const projects = [
     {
       name: "Focal Tonics",
