@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ScrollTrigger } from "gsap/ScrollTrigger.js";
 import HoverLinks from "./HoverLinks";
 import { gsap } from "gsap";
-import { ScrollSmoother } from "gsap/ScrollSmoother";
+import { ScrollSmoother } from "gsap/ScrollSmoother.js";
 import "./styles/Navbar.css";
 import logoImg from "../assets/Logo for Graphics Studio.png";
 
